@@ -1,0 +1,92 @@
+[
+    {
+        "name": "Fountain chowk-Katra",
+        "meta_id": "D1",
+        "district": "Reasi"
+    },
+    {
+        "name": "Varun Chowk- Katra",
+        "meta_id": "D2",
+        "district": "Reasi"
+    },
+    {
+        "name": "Railway Chowk - Katra",
+        "meta_id": "D3",
+        "district": "Reasi"
+    },
+    {
+        "name": "Jij Chowk- Katra",
+        "meta_id": "D4",
+        "district": "Reasi"
+    },
+    {
+        "name": "Ambica Chowk- Katra",
+        "meta_id": "D5",
+        "district": "Reasi"
+    },
+    {
+        "name": "New Bus Stand - Grand Sharan - Katra",
+        "meta_id": "D6",
+        "district": "Reasi"
+    },
+    {
+        "name": "Masjid Chowk - Katra",
+        "meta_id": "D7",
+        "district": "Reasi"
+    },
+    {
+        "name": "No entry point on circular road - Katra",
+        "meta_id": "D8",
+        "district": "Reasi"
+    },
+    {
+        "name": "Turning on Nangal road and Dhanori road- Katra",
+        "meta_id": "D9",
+        "district": "Reasi"
+    },
+    {
+        "name": "Bhumika Temple on Daroor Road- Katra",
+        "meta_id": "D10",
+        "district": "Reasi"
+    },
+    {
+        "name": "Counter no 2 \u2013 Katra",
+        "meta_id": "D11",
+        "district": "Reasi"
+    },
+    {
+        "name": "Main Bazar towards Banganga Junction \u2013 Katra",
+        "meta_id": "D12",
+        "district": "Reasi"
+    },
+    {
+        "name": "TCP Chowk Domail",
+        "meta_id": "E1",
+        "district": "Udhampur"
+    },
+    {
+        "name": "Tikri Naka",
+        "meta_id": "E2",
+        "district": "Udhampur"
+    },
+    {
+        "name": "Main Chowk Chenani",
+        "meta_id": "E3",
+        "district": "Udhampur"
+    },
+    {
+        "name": "Motor Shed Naka Chenani",
+        "meta_id": "E4",
+        "district": "Udhampur"
+    },
+    {
+        "name": "Flata Naka",
+        "meta_id": "E5",
+        "district": "Udhampur"
+    },
+    {
+        "name": "Omara Morh",
+        "meta_id": "E6",
+        "district": "Udhampur"
+    }
+]

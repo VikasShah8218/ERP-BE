@@ -1,0 +1,13 @@
+__pycache__/*
+*.pyc
+model/adaface_ir101_webface12m.ckpt
+model/final_faceDet_model.pt
+scripts/facetools/checkpoints/OULU_Protocol_2_model_0_0.onnx
+face_features.db
+./face_alignment/__pycache__/*
+*.ckpt
+.idea
+RegisteredFace
+face.jpg
+captured_face.jpg
+*.ipynb text eol=lf

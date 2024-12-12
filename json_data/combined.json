@@ -1,0 +1,422 @@
+[
+    {
+        "name": "PHQ Chowk",
+        "meta_id": "A1",
+        "district": 5
+    },
+    {
+        "name": "Asia Crossing",
+        "meta_id": "A2",
+        "district": 5
+    },
+    {
+        "name": "Bahu Plaza (Zorawar Chowk)",
+        "meta_id": "A3",
+        "district": 5
+    },
+    {
+        "name": "Main Gate - Railway Station",
+        "meta_id": "A4",
+        "district": 5
+    },
+    {
+        "name": "Greater Kailash chowk - Jeep Showroom",
+        "meta_id": "A5",
+        "district": 5
+    },
+    {
+        "name": "Parmandal Chowk",
+        "meta_id": "A6",
+        "district": 5
+    },
+    {
+        "name": "Grater kailash NHW - Parmandal road side",
+        "meta_id": "A7",
+        "district": 5
+    },
+    {
+        "name": "Gangyal Chowk - Near Petrol Pump",
+        "meta_id": "A8",
+        "district": 5
+    },
+    {
+        "name": "Nai Basti",
+        "meta_id": "A9",
+        "district": 5
+    },
+    {
+        "name": "Main Stop Gandhi nagar",
+        "meta_id": "A10",
+        "district": 5
+    },
+    {
+        "name": "SBI/RBI Bank Chowk",
+        "meta_id": "A11",
+        "district": 5
+    },
+    {
+        "name": "Railway Station exit gate",
+        "meta_id": "A12",
+        "district": 5
+    },
+    {
+        "name": "Narwal Fruit Market entry and Exit points",
+        "meta_id": "A13",
+        "district": 5
+    },
+    {
+        "name": "Bahu Fort Mandir",
+        "meta_id": "A14",
+        "district": 5
+    },
+    {
+        "name": "Police Station Baghe -e Bahu Chowk",
+        "meta_id": "A15",
+        "district": 5
+    },
+    {
+        "name": "Gujjar Nagar near Bridge",
+        "meta_id": "A16",
+        "district": 5
+    },
+    {
+        "name": "Vikram Chowk",
+        "meta_id": "A17",
+        "district": 5
+    },
+    {
+        "name": "4th Bridge Bagwati Nagar - One side to Cover",
+        "meta_id": "A18",
+        "district": 5
+    },
+    {
+        "name": "Abhinav Theatre",
+        "meta_id": "A19",
+        "district": 5
+    },
+    {
+        "name": "Jewel Chowk",
+        "meta_id": "A20",
+        "district": 5
+    },
+    {
+        "name": "Bakshi Nagar - Mashespura Chowk",
+        "meta_id": "A21",
+        "district": 5
+    },
+    {
+        "name": "Amphala Chowk",
+        "meta_id": "A22",
+        "district": 5
+    },
+    {
+        "name": "TCP Nagorta",
+        "meta_id": "A23",
+        "district": 5
+    },
+    {
+        "name": "Sidhra Chowk",
+        "meta_id": "A24",
+        "district": 5
+    },
+    {
+        "name": "ZPHQ Chowk",
+        "meta_id": "A25",
+        "district": 5
+    },
+    {
+        "name": "Library Chowk",
+        "meta_id": "A26",
+        "district": 5
+    },
+    {
+        "name": "Prade chowk",
+        "meta_id": "A27",
+        "district": 5
+    },
+    {
+        "name": "PCR Mini Stadium",
+        "meta_id": "A28",
+        "district": 5
+    },
+    {
+        "name": "Rameshwar Temple",
+        "meta_id": "A29",
+        "district": 5
+    },
+    {
+        "name": "Mansar Morh",
+        "meta_id": "B1",
+        "district": 6
+    },
+    {
+        "name": "Chichi Mata Temple,",
+        "meta_id": "B2",
+        "district": 6
+    },
+    {
+        "name": "Nanke - Chak Near railway",
+        "meta_id": "B3",
+        "district": 6
+    },
+    {
+        "name": "SIDCO Chowk NHW",
+        "meta_id": "B4",
+        "district": 6
+    },
+    {
+        "name": "Main Bazar Bishnah,",
+        "meta_id": "B5",
+        "district": 6
+    },
+    {
+        "name": "Balole Bridge Naka,",
+        "meta_id": "B6",
+        "district": 6
+    },
+    {
+        "name": "Railway crossing Bari-Brahaman",
+        "meta_id": "B7",
+        "district": 6
+    },
+    {
+        "name": "Patli Morh, NHW",
+        "meta_id": "B8",
+        "district": 6
+    },
+    {
+        "name": "Tarore crossing NHW",
+        "meta_id": "B9",
+        "district": 6
+    },
+    {
+        "name": "Sarore Adda NHW",
+        "meta_id": "B10",
+        "district": 6
+    },
+    {
+        "name": "Sarore Bridge Bari - Brahmana",
+        "meta_id": "B11",
+        "district": 6
+    },
+    {
+        "name": "Basantar Bridge",
+        "meta_id": "B12",
+        "district": 6
+    },
+    {
+        "name": "6 Town",
+        "meta_id": "B13",
+        "district": 6
+    },
+    {
+        "name": "Nandni hill crossing NHW",
+        "meta_id": "B14",
+        "district": 6
+    },
+    {
+        "name": "Pallah Morh",
+        "meta_id": "B15",
+        "district": 6
+    },
+    {
+        "name": "New Hospital Chowk",
+        "meta_id": "B16",
+        "district": 6
+    },
+    {
+        "name": "New Bus Stand 6",
+        "meta_id": "B17",
+        "district": 6
+    },
+    {
+        "name": "Rahya Chowk, NHW",
+        "meta_id": "B18",
+        "district": 6
+    },
+    {
+        "name": "Jakh Chowk, NHW",
+        "meta_id": "B19",
+        "district": 6
+    },
+    {
+        "name": "Thandi Khui Crossing,",
+        "meta_id": "B20",
+        "district": 6
+    },
+    {
+        "name": "Swankha Morh",
+        "meta_id": "B21",
+        "district": 6
+    },
+    {
+        "name": "Vijaypur Town, main",
+        "meta_id": "B22",
+        "district": 6
+    },
+    {
+        "name": "Vijaypur Market",
+        "meta_id": "B23",
+        "district": 6
+    },
+    {
+        "name": "AIIMS Bridge Devak",
+        "meta_id": "B24",
+        "district": 6
+    },
+    {
+        "name": "Jatwal Traffic Point",
+        "meta_id": "B25",
+        "district": 6
+    },
+    {
+        "name": "Tapyal Naka",
+        "meta_id": "B26",
+        "district": 6
+    },
+    {
+        "name": "Dayalachak",
+        "meta_id": "C1",
+        "district": 7
+    },
+    {
+        "name": "Palli",
+        "meta_id": "C2",
+        "district": 7
+    },
+    {
+        "name": "Kalibari",
+        "meta_id": "C3",
+        "district": 7
+    },
+    {
+        "name": "Basantpur",
+        "meta_id": "C4",
+        "district": 7
+    },
+    {
+        "name": "Kalibari Chowk",
+        "meta_id": "C5",
+        "district": 7
+    },
+    {
+        "name": "Hatli Chowk",
+        "meta_id": "C6",
+        "district": 7
+    },
+    {
+        "name": "GMC Chowk 7",
+        "meta_id": "C7",
+        "district": 7
+    },
+    {
+        "name": "Barnoti Chowk",
+        "meta_id": "C8",
+        "district": 7
+    },
+    {
+        "name": "Lakhanpur Toll Plaza",
+        "meta_id": "C9",
+        "district": 7
+    },
+    {
+        "name": "Janglote",
+        "meta_id": "C10",
+        "district": 7
+    },
+    {
+        "name": "Lane leading towards Govindsar (Hatli Morh)",
+        "meta_id": "C11",
+        "district": 7
+    },
+    {
+        "name": "Fountain chowk-Katra",
+        "meta_id": "D1",
+        "district": 8
+    },
+    {
+        "name": "Varun Chowk- Katra",
+        "meta_id": "D2",
+        "district": 8
+    },
+    {
+        "name": "Railway Chowk - Katra",
+        "meta_id": "D3",
+        "district": 8
+    },
+    {
+        "name": "Jij Chowk- Katra",
+        "meta_id": "D4",
+        "district": 8
+    },
+    {
+        "name": "Ambica Chowk- Katra",
+        "meta_id": "D5",
+        "district": 8
+    },
+    {
+        "name": "New Bus Stand - Grand Sharan - Katra",
+        "meta_id": "D6",
+        "district": 8
+    },
+    {
+        "name": "Masjid Chowk - Katra",
+        "meta_id": "D7",
+        "district": 8
+    },
+    {
+        "name": "No entry point on circular road - Katra",
+        "meta_id": "D8",
+        "district": 8
+    },
+    {
+        "name": "Turning on Nangal road and Dhanori road- Katra",
+        "meta_id": "D9",
+        "district": 8
+    },
+    {
+        "name": "Bhumika Temple on Daroor Road- Katra",
+        "meta_id": "D10",
+        "district": 8
+    },
+    {
+        "name": "Counter no 2 \u2013 Katra",
+        "meta_id": "D11",
+        "district": 8
+    },
+    {
+        "name": "Main Bazar towards Banganga Junction \u2013 Katra",
+        "meta_id": "D12",
+        "district": 8
+    },
+    {
+        "name": "TCP Chowk Domail",
+        "meta_id": "E1",
+        "district": 9
+    },
+    {
+        "name": "Tikri Naka",
+        "meta_id": "E2",
+        "district": 9
+    },
+    {
+        "name": "Main Chowk Chenani",
+        "meta_id": "E3",
+        "district": 9
+    },
+    {
+        "name": "Motor Shed Naka Chenani",
+        "meta_id": "E4",
+        "district": 9
+    },
+    {
+        "name": "Flata Naka",
+        "meta_id": "E5",
+        "district": 9
+    },
+    {
+        "name": "Omara Morh",
+        "meta_id": "E6",
+        "district": 9
+    }
+]

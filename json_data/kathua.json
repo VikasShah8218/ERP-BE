@@ -1,0 +1,57 @@
+[
+    {
+        "name": "Dayalachak",
+        "meta_id": "C1",
+        "district": "Kathua"
+    },
+    {
+        "name": "Palli",
+        "meta_id": "C2",
+        "district": "Kathua"
+    },
+    {
+        "name": "Kalibari",
+        "meta_id": "C3",
+        "district": "Kathua"
+    },
+    {
+        "name": "Basantpur",
+        "meta_id": "C4",
+        "district": "Kathua"
+    },
+    {
+        "name": "Kalibari Chowk",
+        "meta_id": "C5",
+        "district": "Kathua"
+    },
+    {
+        "name": "Hatli Chowk",
+        "meta_id": "C6",
+        "district": "Kathua"
+    },
+    {
+        "name": "GMC Chowk Kathua",
+        "meta_id": "C7",
+        "district": "Kathua"
+    },
+    {
+        "name": "Barnoti Chowk",
+        "meta_id": "C8",
+        "district": "Kathua"
+    },
+    {
+        "name": "Lakhanpur Toll Plaza",
+        "meta_id": "C9",
+        "district": "Kathua"
+    },
+    {
+        "name": "Janglote",
+        "meta_id": "C10",
+        "district": "Kathua"
+    },
+    {
+        "name": "Lane leading towards Govindsar (Hatli Morh)",
+        "meta_id": "C11",
+        "district": "Kathua"
+    }
+]

@@ -1,7 +1,7 @@
 from .serializers import (TaskAssignSerializer,GetTaskAssignSerializer, 
 AssosiatedUsersLandmarkCreateUpdateSerializer, AssosiatedUsersLandmarkRetrieveSerializer,
-UserWithLandmarksSerializer)
-from .models import TaskAssign,AssosiatedUsersLandmark
+UserWithLandmarksSerializer, TaskReAllocationCreateUpdateSerializer,TaskReAllocationRetrieveSerializer)
+from .models import TaskAssign,AssosiatedUsersLandmark,TaskReAllocation
 from rest_framework.viewsets import ModelViewSet
 from utilities.send_message import send_message
 from rest_framework.response import Response
@@ -98,7 +98,6 @@ class TaskAssignViewSet(ModelViewSet):
         task.updated_by = request.user
         task.save()
         return Response({"detail": "Task marked as completed."}, status=status.HTTP_200_OK)
-    
 
 class AssosiatedUsersLandmarkViewSet(ModelViewSet):
     queryset = AssosiatedUsersLandmark.objects.all()
@@ -138,9 +137,65 @@ class AssosiatedUsersLandmarkViewSet(ModelViewSet):
         """
         serializer.save(updated_by=self.request.user)
 
-
 class UsersWithLandmarksViewSet(ModelViewSet):
     def list(self, request):
         users = User.objects.all()
         serializer = UserWithLandmarksSerializer(users, many=True)
         return Response(serializer.data)
+
+class TaskReAllocationViewSet(ModelViewSet):
+    queryset = TaskReAllocation.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return TaskReAllocationRetrieveSerializer 
+        return TaskReAllocationCreateUpdateSerializer  
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        if not all(key in data for key in ["task","re_allocate_to"]):
+            return Response({"detail": "All fields (task, user, re_allocate_to, message) are required."},status=status.HTTP_400_BAD_REQUEST,)
+        
+        existing_reallocation = TaskReAllocation.objects.filter(task_id=data["task"], user_id=request.user.id).exists()
+        if existing_reallocation:return Response({"detail": "You can't reallocate again."},status=status.HTTP_400_BAD_REQUEST,)
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=['get'], url_path='filter-by-task')
+    def filter_by_task(self, request):
+        print("*"*50,"Working ","*"*50)
+        """
+        Filter TaskReAllocation data by task ID and return a user-to-reallocated-user mapping.
+        """
+        task_id = request.query_params.get("task_id")
+        if not task_id:
+            return Response(
+                {"detail": "task_id is required as a query parameter."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Fetch all reallocations linked to the task ID
+        reallocations = TaskReAllocation.objects.filter(task_id=task_id)
+
+        if not reallocations.exists():
+            return Response(
+                {"detail": "No reallocations found for the given task ID."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Build the user-to-reallocate mapping
+        user_reallocate_map = {}
+        for reallocation in reallocations:
+            user_reallocate_map[f"{reallocation.user.username}"] = (f"{reallocation.re_allocate_to.username}")
+
+        # Prepare the response with task details
+        task_detail = {
+            "task_id": task_id,
+            "task_name": reallocations.first().task.name,  # Assuming all entries have the same task
+            "user_reallocate_map": user_reallocate_map,
+        }
+
+        return Response(task_detail, status=status.HTTP_200_OK)

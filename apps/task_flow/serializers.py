@@ -1,4 +1,5 @@
-from .models import TaskAssign ,AssosiatedUsersLandmark,TaskReAllocation
+from .models import TaskAssign ,AssosiatedUsersLandmark,TaskReAllocation,TaskLandmarkComplete,TaskMedia
+from rest_framework.serializers import SerializerMethodField
 from apps.structure.models import Landmark
 from rest_framework import serializers
 from apps.accounts.models import User 
@@ -15,11 +16,11 @@ class LandmarkSerializer(serializers.ModelSerializer):
         model = Landmark
         fields = "__all__"
 
-
 class GetTaskAssignSerializer(serializers.ModelSerializer):
     assigned_users = UserSerializer(many=True)
-    landmarks = LandmarkSerializer(many=True)
+    landmarks = SerializerMethodField()  # Custom field to include `is_complete`
     created_by = UserSerializer()
+
     class Meta:
         model = TaskAssign
         fields = [
@@ -28,6 +29,24 @@ class GetTaskAssignSerializer(serializers.ModelSerializer):
             'created_on', 'updated_on', 'created_by', 'updated_by'
         ]
         read_only_fields = ['created_by', 'updated_by', 'created_on', 'updated_on', 'conversation']
+
+    def get_landmarks(self, obj):
+        """
+        Returns landmarks with completion status from TaskLandmarkComplete model.
+        """
+        # Get all landmarks linked to the task
+        landmarks = obj.landmarks.all()
+
+        # Get completion status for each landmark
+        landmark_complete_data = TaskLandmarkComplete.objects.filter(task=obj)
+        completion_map = {lc.landmark.id: lc.is_complete for lc in landmark_complete_data}
+
+        # Add the `is_complete` field to each landmark
+        serialized_landmarks = LandmarkSerializer(landmarks, many=True).data
+        for landmark in serialized_landmarks:
+            landmark['is_complete'] = completion_map.get(landmark['id'], False)
+        
+        return serialized_landmarks
 
 class TaskAssignSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,7 +65,6 @@ class TaskConversationSerializer(serializers.ModelSerializer):
         model = TaskAssign
         fields = ['conversation']
 
-
 class AssosiatedUsersLandmarkCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssosiatedUsersLandmark
@@ -61,8 +79,6 @@ class AssosiatedUsersLandmarkRetrieveSerializer(serializers.ModelSerializer):
         model = AssosiatedUsersLandmark
         fields = ['id', 'landmark', 'user', 'created_on', 'updated_on']
 
-
-
 class UserWithLandmarksSerializer(serializers.ModelSerializer):
     landmarks = serializers.SerializerMethodField()
 
@@ -76,7 +92,6 @@ class UserWithLandmarksSerializer(serializers.ModelSerializer):
         landmarks = [assoc.landmark for assoc in associated_landmarks]
         return LandmarkSerializer(landmarks, many=True).data
     
-
 class TaskReAllocationCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskReAllocation
@@ -98,3 +113,22 @@ class TaskReAllocationRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskReAllocation
         fields = ['id', 'task', 'user', 're_allocate_to', 'message', 'created_on', 'updated_on']
+
+class TaskLandmarkCompleteRetrieveSerializer(serializers.ModelSerializer):
+    task = TaskAssignSerializer()  # Nested Task details
+    landmark = LandmarkSerializer()  # Nested Landmark details
+
+    class Meta:
+        model = TaskLandmarkComplete
+        fields = ['id', 'task', 'landmark', 'is_complete', 'created_on', 'updated_on', 'created_by', 'updated_by']
+
+class TaskLandmarkCompleteCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskLandmarkComplete
+        fields = ['task', 'landmark', 'is_complete']
+
+class TaskMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskMedia
+        fields = ['id', 'task', 'file_type', 'file', 'created_on', 'updated_on', 'created_by']
+        read_only_fields = ['created_on', 'updated_on']

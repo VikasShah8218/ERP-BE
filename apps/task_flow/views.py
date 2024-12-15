@@ -1,7 +1,9 @@
-from .serializers import (TaskAssignSerializer,GetTaskAssignSerializer, 
+from .serializers import (TaskAssignSerializer,GetTaskAssignSerializer, UserWithLandmarksSerializer,TaskMediaSerializer,
 AssosiatedUsersLandmarkCreateUpdateSerializer, AssosiatedUsersLandmarkRetrieveSerializer,
-UserWithLandmarksSerializer, TaskReAllocationCreateUpdateSerializer,TaskReAllocationRetrieveSerializer)
-from .models import TaskAssign,AssosiatedUsersLandmark,TaskReAllocation
+TaskReAllocationCreateUpdateSerializer,TaskReAllocationRetrieveSerializer,
+TaskLandmarkCompleteCreateUpdateSerializer,TaskLandmarkCompleteRetrieveSerializer)
+from .models import TaskAssign,AssosiatedUsersLandmark,TaskReAllocation,TaskLandmarkComplete,TaskMedia
+from utilities.image_size_scale import resize_and_save_image
 from rest_framework.viewsets import ModelViewSet
 from utilities.send_message import send_message
 from rest_framework.response import Response
@@ -13,8 +15,11 @@ from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status
 from django.db.models import Q
+import mimetypes
+import tempfile
 import asyncio
 import time
+import cv2
 
 
 class Test(APIView):
@@ -33,29 +38,21 @@ class TaskAssignViewSet(ModelViewSet):
         return TaskAssign.objects.all().order_by("-updated_on")
     
     def get_serializer_class(self):
-        """
-        Dynamically select serializer based on the HTTP method.
-        """
-        if self.action in ["list", "retrieve"]:  # For GET requests (list and detail)
+        if self.action in ["list", "retrieve"]:  
             return GetTaskAssignSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
-        """
-        Create a new task and set the creator.
-        """
         data = request.data
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         assigned_users_ids = data.get("assigned_users", [])
         eligible_users = User.objects.filter(id__in=assigned_users_ids, client_id__isnull=False)
-        # asyncio.run(send_message(['1399188883'],f"Mr Shah is testing: {int(time.time())}"))
         for user in eligible_users:
             asyncio.run(send_message([user.client_id], str(data.get("name"))+" \n "+str(data.get("note")) + str(int(time.time()))))
 
         task = serializer.save(created_by=request.user)  
         return Response({"detail": "Task created successfully.", "data": TaskAssignSerializer(task).data},status=status.HTTP_201_CREATED)
-        # return Response({"detail": "Task created successfully."},status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['patch'], url_path='accept-task')
     def task_accepted(self, request, pk=None):
@@ -199,3 +196,165 @@ class TaskReAllocationViewSet(ModelViewSet):
         }
 
         return Response(task_detail, status=status.HTTP_200_OK)
+    
+class TaskLandmarkCompleteViewSet(ModelViewSet):
+    queryset = TaskLandmarkComplete.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]: 
+            return TaskLandmarkCompleteRetrieveSerializer
+        return TaskLandmarkCompleteCreateUpdateSerializer 
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        if not all(key in data for key in ["task", "landmark", "is_complete"]):
+            return Response(
+                {"detail": "All fields (task, landmark, is_complete) are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        existing_record = TaskLandmarkComplete.objects.filter(
+            task_id=data["task"], landmark_id=data["landmark"]
+        ).exists()
+
+        if existing_record:
+            return Response(
+                {"detail": "This task-landmark combination already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(created_by=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='filter-by-task')
+    def filter_by_task(self, request):
+        """
+        Filter TaskLandmarkComplete records by task ID.
+        """
+        task_id = request.query_params.get("task_id")
+        if not task_id:
+            return Response(
+                {"detail": "task_id is required as a query parameter."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        completions = TaskLandmarkComplete.objects.filter(task_id=task_id)
+
+        if not completions.exists():
+            return Response({"detail": "No completions found for the given task ID."},status=status.HTTP_404_NOT_FOUND,)
+
+        serializer = self.get_serializer(completions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class TaskMediaViewSet(ModelViewSet):
+    queryset = TaskMedia.objects.all()
+    serializer_class = TaskMediaSerializer
+
+    def get_queryset(self):
+        task_id = self.request.query_params.get("task_id")
+        if task_id:
+            return TaskMedia.objects.filter(task_id=task_id).order_by("-created_on")
+        return super().get_queryset()
+
+    # def create(self, request, *args, **kwargs):
+    #     task_id = request.data.get("task")
+    #     file = request.FILES.get("file")
+    #     try:
+    #         task = TaskAssign.objects.get(id=task_id)
+    #     except TaskAssign.DoesNotExist:
+    #         return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+    #     if task.is_complete:
+    #         return Response({"detail": "Task is already completed."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     file_type = None
+    #     if file:
+    #         mime_type, _ = mimetypes.guess_type(file.name)
+    #         if mime_type:
+    #             if mime_type.startswith("image"):
+    #                 file_type = "image"
+    #             elif mime_type.startswith("video"):
+    #                 file_type = "video"
+    #             elif mime_type.startswith("application/pdf"):
+    #                 file_type = "pdf"
+    #             else:
+    #                 file_type = "other"
+
+    #     if not file_type:
+    #         return Response({"detail": "Could not determine file type."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     data = {
+    #         "task": task.id,
+    #         "file_type": file_type,
+    #         "file": file,
+    #         "created_by": request.user.id,
+    #     }
+    #     serializer = self.get_serializer(data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_create(serializer)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+    def create(self, request, *args, **kwargs):
+        task_id = request.data.get("task")
+        file = request.FILES.get("file")
+        try:
+            task = TaskAssign.objects.get(id=task_id)
+        except TaskAssign.DoesNotExist:
+            return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if task.is_complete:
+            return Response({"detail": "Task is already completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine file type
+        file_type = None
+        if file:
+            mime_type, _ = mimetypes.guess_type(file.name)
+            if mime_type:
+                if mime_type.startswith("image"):
+                    file_type = "image"
+                elif mime_type.startswith("video"):
+                    file_type = "video"
+                elif mime_type.startswith("application/pdf"):
+                    file_type = "pdf"
+                else:
+                    file_type = "other"
+
+        if not file_type:
+            return Response({"detail": "Could not determine file type."}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "task": task.id,
+            "file_type": file_type,
+            "file": file,
+            "created_by": request.user.id,
+        }
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        saved_object = serializer.save()
+        thumblane_path = saved_object.file.path.replace(".mp4",".jpg").replace("task_media","thumbnail")
+        if file_type == "video":
+            cap = cv2.VideoCapture(saved_object.file.path)
+            ret, frame = cap.read()
+            if ret:
+                print("First frame extracted successfully")
+                print("*"*20,thumblane_path)
+                resize_and_save_image(frame,thumblane_path)
+                # cv2.imwrite(thumblane_path, frame)
+            else:
+                print("Failed to extract the first frame")
+            cap.release()
+
+        if file_type=="image":
+            output_path = saved_object.file.path.replace("task_media","thumbnail")
+            resize_and_save_image(saved_object.file.path,output_path)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"detail": "Task media deleted successfully."}, status=status.HTTP_200_OK)
+

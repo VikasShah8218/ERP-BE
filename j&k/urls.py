@@ -5,6 +5,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
+# for dubug only ---------------
+from django.conf import settings
+from django.conf.urls.static import static
+# -----------------------------
 
 jwt_token_url_patterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -25,3 +29,8 @@ urlpatterns = [
     
 
 ]+jwt_token_url_patterns
+
+# for dubug only ---------------
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# -----------------------------

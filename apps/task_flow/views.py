@@ -80,7 +80,7 @@ class TaskAssignViewSet(ModelViewSet):
         task.conversation = (task.conversation or "") + f"\n {request.user.username} : {new_conversation}"
         task.updated_by = request.user
         task.save()
-        return Response({"detail": "Conversation added successfully."}, status=status.HTTP_200_OK)
+        return Response({"detail": "Message Send"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path='complete-task')
     def task_completed(self, request, pk=None):
@@ -152,21 +152,25 @@ class TaskReAllocationViewSet(ModelViewSet):
         data = request.data
         if not all(key in data for key in ["task","re_allocate_to"]):
             return Response({"detail": "All fields (task, user, re_allocate_to, message) are required."},status=status.HTTP_400_BAD_REQUEST,)
+        try:
+            task = TaskAssign.objects.get(id=data["task"])
+            if task.is_complete:
+                return Response({"detail": "Task is already completed. You cannot reallocate."}, status=status.HTTP_400_BAD_REQUEST)
+        except TaskAssign.DoesNotExist:
+            return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
         
         existing_reallocation = TaskReAllocation.objects.filter(task_id=data["task"], user_id=request.user.id).exists()
-        if existing_reallocation:return Response({"detail": "You can't reallocate again."},status=status.HTTP_400_BAD_REQUEST,)
+        if existing_reallocation:return Response({"detail": "You can't reallocate again."},status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = serializer.data
+        data["detail"] = "Re-Allocated"
+        return Response(data, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['get'], url_path='filter-by-task')
     def filter_by_task(self, request):
-        print("*"*50,"Working ","*"*50)
-        """
-        Filter TaskReAllocation data by task ID and return a user-to-reallocated-user mapping.
-        """
         task_id = request.query_params.get("task_id")
         if not task_id:
             return Response(
@@ -207,7 +211,8 @@ class TaskLandmarkCompleteViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        if not all(key in data for key in ["task", "landmark", "is_complete"]):
+        data["is_complete"] = True
+        if not all(key in data for key in ["task", "landmark"]):
             return Response(
                 {"detail": "All fields (task, landmark, is_complete) are required."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -226,7 +231,9 @@ class TaskLandmarkCompleteViewSet(ModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = serializer.data
+        data["detail"] = "Landmark Completed"
+        return Response(data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], url_path='filter-by-task')
     def filter_by_task(self, request):
@@ -257,45 +264,6 @@ class TaskMediaViewSet(ModelViewSet):
         if task_id:
             return TaskMedia.objects.filter(task_id=task_id).order_by("-created_on")
         return super().get_queryset()
-
-    # def create(self, request, *args, **kwargs):
-    #     task_id = request.data.get("task")
-    #     file = request.FILES.get("file")
-    #     try:
-    #         task = TaskAssign.objects.get(id=task_id)
-    #     except TaskAssign.DoesNotExist:
-    #         return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-    #     if task.is_complete:
-    #         return Response({"detail": "Task is already completed."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     file_type = None
-    #     if file:
-    #         mime_type, _ = mimetypes.guess_type(file.name)
-    #         if mime_type:
-    #             if mime_type.startswith("image"):
-    #                 file_type = "image"
-    #             elif mime_type.startswith("video"):
-    #                 file_type = "video"
-    #             elif mime_type.startswith("application/pdf"):
-    #                 file_type = "pdf"
-    #             else:
-    #                 file_type = "other"
-
-    #     if not file_type:
-    #         return Response({"detail": "Could not determine file type."}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     data = {
-    #         "task": task.id,
-    #         "file_type": file_type,
-    #         "file": file,
-    #         "created_by": request.user.id,
-    #     }
-    #     serializer = self.get_serializer(data=data)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_create(serializer)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
 
     def create(self, request, *args, **kwargs):
         task_id = request.data.get("task")
@@ -351,7 +319,9 @@ class TaskMediaViewSet(ModelViewSet):
         if file_type=="image":
             output_path = saved_object.file.path.replace("task_media","thumbnail")
             resize_and_save_image(saved_object.file.path,output_path)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data =  serializer.data
+        data["detail"] = "File Uploaded"
+        return Response(data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

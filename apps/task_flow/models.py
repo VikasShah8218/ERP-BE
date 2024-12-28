@@ -14,6 +14,8 @@ class TaskAssign(models.Model):
     assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    latitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="task_created_by")
     updated_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="task_updated_by")
     is_started = models.BooleanField(null=True, blank=True)
@@ -40,6 +42,8 @@ class TaskLandmarkComplete(models.Model):
         on_delete=models.CASCADE, 
         related_name='landmark_task_completions'
     )
+    latitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
     created_by = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
@@ -68,6 +72,8 @@ class TaskReAllocation(models.Model):
     task = models.ForeignKey("TaskAssign", on_delete=models.CASCADE, related_name="re_allocations")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="re_allocations_made")  
     re_allocate_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name="re_allocated_tasks")  
+    latitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True)
     message = models.TextField(null=True, blank=True) 
     created_on = models.DateTimeField(auto_now_add=True) 
     updated_on = models.DateTimeField(auto_now=True) 
@@ -82,6 +88,8 @@ class AssosiatedUsersLandmark(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE, related_name='associated_user')
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    latitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="associated_created_by")
     updated_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="associated_updated_by")
 
@@ -92,8 +100,12 @@ class TaskMedia(models.Model):
     task = models.ForeignKey(TaskAssign, on_delete=models.CASCADE, related_name="task_media")  # Link to TaskAssign
     file_type = models.CharField(max_length=10)  # Type of file
     file = models.FileField(upload_to="task_media/")  # File field to store the media
+    latitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    latitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=16, decimal_places=14, null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="media_created_by")
     updated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="media_updated_by",null=True)
 

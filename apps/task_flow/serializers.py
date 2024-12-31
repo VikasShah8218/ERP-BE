@@ -26,7 +26,7 @@ class GetTaskAssignSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'landmarks', 'estimate_ex_date', 'note', 'assigned_users',
             'is_started', 'started_on', 'is_complete', 'completed_on','latitude','longitude', 'conversation',
-            'created_on', 'updated_on', 'created_by', 'updated_by'
+            'created_on', 'updated_on', 'created_by', 'updated_by','is_private','depends_on','scheduled'
         ]
         read_only_fields = ['created_by', 'updated_by', 'created_on', 'updated_on', 'conversation']
 
@@ -51,7 +51,7 @@ class TaskAssignSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'landmarks', 'estimate_ex_date', 'note', 'assigned_users',
             'is_started', 'started_on', 'is_complete','latitude','longitude',  'completed_on',
-            'created_on', 'updated_on', 'created_by', 'updated_by'
+            'created_on', 'updated_on', 'created_by', 'updated_by','is_private','depends_on','scheduled'
         ]
         read_only_fields = ['created_by', 'updated_by', 'created_on', 'updated_on','conversation']
 

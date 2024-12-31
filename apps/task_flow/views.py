@@ -3,9 +3,10 @@ AssosiatedUsersLandmarkCreateUpdateSerializer, AssosiatedUsersLandmarkRetrieveSe
 TaskReAllocationCreateUpdateSerializer,TaskReAllocationRetrieveSerializer,
 TaskLandmarkCompleteCreateUpdateSerializer,TaskLandmarkCompleteRetrieveSerializer)
 from .models import TaskAssign,AssosiatedUsersLandmark,TaskReAllocation,TaskLandmarkComplete,TaskMedia
+from django.db.models import Case, When, Value, IntegerField
 from utilities.image_size_scale import resize_and_save_image
+from utilities.send_message import send_message_task
 from rest_framework.viewsets import ModelViewSet
-from utilities.send_message import send_message
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from apps.structure.models import Landmark
@@ -34,38 +35,67 @@ class TaskAssignViewSet(ModelViewSet):
 
     queryset = TaskAssign.objects.all()
     serializer_class = TaskAssignSerializer
-    def get_queryset(self):
-        return TaskAssign.objects.all().order_by("-updated_on")
     
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:  
             return GetTaskAssignSerializer
         return super().get_serializer_class()
+    
+# queryset = TaskAssign.objects.filter(~(Q(is_private=True) & ~Q(assigned_users=self.request.user))).order_by("assigned_users.user_id","-updated_on")
+    def get_queryset(self):
+        user_id = self.request.user.id
+        queryset = TaskAssign.objects.raw(f''' SELECT t.*, u.user_id FROM public.tbl_task_assign t LEFT JOIN (SELECT taskassign_id, user_id FROM  tbl_task_assign_assigned_users WHERE user_id = {user_id}) u ON t.id = u.taskassign_id WHERE is_private = false or ( is_private = true and user_id = {user_id} ) ORDER BY  user_id ASC ,updated_on DESC  ''')
+        return queryset
+    
+    def get_object(self):
+        user_id = self.request.user.id
+        queryset = TaskAssign.objects.get(id=self.kwargs.get('pk'))
+        return queryset
 
     def create(self, request, *args, **kwargs):
         data = request.data
+        data["assigned_users"].append(request.user.id)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         assigned_users_ids = data.get("assigned_users", [])
         eligible_users = User.objects.filter(id__in=assigned_users_ids, client_id__isnull=False)
+        client_id,users_name = [], ""
         for user in eligible_users:
-            asyncio.run(send_message([user.client_id], str(data.get("name"))+" \n "+str(data.get("note")) + str(int(time.time()))))
-
+            if user.client_id:
+                client_id.append(user.client_id) 
+                users_name += (str(user.first_name)+"\n")
+        if len(client_id)>0: send_message_task.delay(client_id, str(data.get("name"))+"\n"+str(data.get("note"))+"\n"+users_name)
         task = serializer.save(created_by=request.user)  
         return Response({"detail": "Task created successfully.", "data": TaskAssignSerializer(task).data},status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['patch'], url_path='accept-task')
     def task_accepted(self, request, pk=None):
-        """
-        Mark a task as accepted and update related fields.
-        """
         task = self.get_object()
         data = request.data
+
+        if not task.assigned_users.filter(id=request.user.id).exists():
+            return Response({"detail": "You are not assosiated with this task"},status=status.HTTP_403_FORBIDDEN)
+        
+        if task.depends_on and not task.depends_on.is_complete:
+            return Response(
+                {"detail": f"{task.depends_on.name} is not completed yet, first complete that task."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if task.is_started: return Response({"detail": "Task is already accepted."}, status=status.HTTP_400_BAD_REQUEST)
         task.updated_by = request.user
         task.is_started = True
         task.conversation = (task.conversation or "") + f"\n {request.user.username}  : {data.get('conversation', '')}"
         task.started_on = timezone.now()
         task.save()
+
+        client_id = task.assigned_users.values_list('client_id', flat=True).filter(client_id__isnull=False)
+        if client_id:
+            message = (
+                f"{task.name}\n"
+                f"Accepted: {request.user.username}\n"
+                f"Details \n {data.get('conversation', '')} \n"
+            )
+            send_message_task.delay(list(client_id), message)
         return Response({"detail": "Task accepted successfully."}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path='add-conversation')
@@ -89,12 +119,81 @@ class TaskAssignViewSet(ModelViewSet):
         """
         task = self.get_object()
         data = request.data
+        if task.depends_on and not task.depends_on.is_complete:
+            return Response(
+                {"detail": f"{task.depends_on.name} is not completed yet, first complete that task."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         task.is_complete = True
         task.conversation = (task.conversation or "") + f"\n {request.user.username} : {data.get('conversation', '')}"
         task.completed_on = timezone.now()  # Ensure you import `timezone` from Django
         task.updated_by = request.user
         task.save()
         return Response({"detail": "Task marked as completed."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='update-users')
+    def update_users(self, request, pk=None):
+            """
+            Add or remove users from the task's assigned_users.
+            Return lists of already existing users and non-existing users.
+            """
+            task = self.get_object()
+            user_ids_to_add = request.data.get("add_users", [])
+            user_ids_to_remove = request.data.get("remove_users", [])
+
+            already_assigned_users = []
+            non_existing_users = []
+            if task.depends_on and not task.depends_on.is_complete:
+                return Response(
+                    {"detail": f"{task.depends_on.name} \n is not completed yet, first complete that task."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            added_users = ""
+            if user_ids_to_add:
+                users_to_add = User.objects.filter(id__in=user_ids_to_add)
+                existing_user_ids = set(task.assigned_users.values_list('id', flat=True))
+                for user in users_to_add:
+                    if user.id in existing_user_ids:
+                        already_assigned_users.append(user.id)
+                    else:
+                        added_users += (user.first_name + ",  ")
+                        task.assigned_users.add(user)
+
+            removed_user = ""
+            if user_ids_to_remove:
+                existing_user_ids = set(task.assigned_users.values_list('id', flat=True))
+                for user_id in user_ids_to_remove:
+                    if user_id not in existing_user_ids:
+                        non_existing_users.append(user_id)
+                    else:
+                        user = User.objects.filter(id=user_id).first()
+                        if user:
+                            removed_user += (user.first_name + ",  ")
+                            task.assigned_users.remove(user)
+
+            task.updated_by = request.user
+            task.save()
+            client_id = task.assigned_users.values_list('client_id', flat=True).filter(client_id__isnull=False)
+            if user_ids_to_add and client_id:
+                message = (
+                    f"---{task.name}--- \n \n"
+                    f"{request.user.username} Add User { added_users }\n \n \n"
+                )
+                send_message_task.delay(list(client_id), message)
+
+            if user_ids_to_remove and client_id:
+                message = (
+                    f"---{task.name}--- \n \n"
+                    f"{request.user.username} Remove User { removed_user }\n \n \n"
+                )
+                send_message_task.delay(list(client_id), message)
+
+            return Response({
+                "detail": "Users updated successfully.",
+                "assigned_users": list(task.assigned_users.values_list('id', flat=True)),
+                "already_assigned_users": already_assigned_users,
+                "non_existing_users": non_existing_users
+            }, status=status.HTTP_200_OK)
 
 class AssosiatedUsersLandmarkViewSet(ModelViewSet):
     queryset = AssosiatedUsersLandmark.objects.all()
@@ -270,6 +369,11 @@ class TaskMediaViewSet(ModelViewSet):
         file = request.FILES.get("file")
         try:
             task = TaskAssign.objects.get(id=task_id)
+            if task.depends_on and not task.depends_on.is_complete:
+                return Response(
+                    {"detail": f"{task.depends_on.name} is not completed yet, first complete that task."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         except TaskAssign.DoesNotExist:
             return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
 

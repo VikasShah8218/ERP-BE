@@ -1,7 +1,7 @@
 import cv2
 import os
 
-def resize_and_save_image(input, output_path: str, max_file_size_kb: int = 50):
+def resize_and_save_image(input, output_path: str, max_file_size_kb: int = 10):
     try:
         image = cv2.imread(input) if isinstance(input,str) else input
         if image is None:return False, "Error: Image not found or invalid image format."
@@ -18,9 +18,9 @@ def resize_and_save_image(input, output_path: str, max_file_size_kb: int = 50):
                 success = True
                 break
             if quality > 20:
-                quality -= 5  # Reduce quality
+                quality -= 10  # Reduce quality
             elif scaling_factor > 0.1:
-                scaling_factor -= 0.05  # Reduce size
+                scaling_factor -= 0.10  # Reduce size
             else:
                 break 
         if success:

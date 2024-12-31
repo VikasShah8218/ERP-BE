@@ -41,9 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist',
+    # 'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
+    'django_celery_results',
+    'django_celery_beat',
     'apps.accounts',
     'apps.structure',
     'apps.task_flow',
@@ -147,10 +150,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -202,12 +204,19 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
 # Use CELERY_ prefix
-# CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
-# CELERY_RESULT_BACKEND = os.environ['CELERY_BACKEND_URL']
-# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
+CELERY_RESULT_BACKEND = os.environ['CELERY_BACKEND_URL']
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-# CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ROUTES = {
+    'utilities.send_message.send_message_task': {'queue': 'high_priority'},
+}
+
+# CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_SERIALIZER = 'json'
-
-# CELERY_TIMEZONE = TIME_ZONE
+# CELERY_RESULT_BACKEND = 'django-db'

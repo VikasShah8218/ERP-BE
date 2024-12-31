@@ -1,6 +1,7 @@
 from django.db import models
 from apps.structure.models import Landmark
 from apps.accounts.models import User
+from django_celery_beat.models import CrontabSchedule
 
  
 class TaskAssign(models.Model):
@@ -23,6 +24,10 @@ class TaskAssign(models.Model):
     is_complete = models.BooleanField(null=True, blank=True)
     completed_on = models.DateTimeField(null=True,blank=True)
     conversation = models.TextField(blank=True, null=True)
+    is_private = models.BooleanField(null=True,blank=True,default=False)  
+    depends_on = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='dependent_tasks')
+    scheduled = models.ForeignKey(CrontabSchedule, on_delete=models.SET_NULL, null=True, blank=True, related_name='task_assignments')
+
 
     def __str__(self):
         return self.name

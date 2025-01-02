@@ -194,6 +194,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # React app
     'http://localhost:5173',  # React app
+    'http://192.168.1.12:3000',  # React app
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -204,8 +205,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
 # Use CELERY_ prefix
-CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
-CELERY_RESULT_BACKEND = os.environ['CELERY_BACKEND_URL']
+# CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+# CELERY_RESULT_BACKEND = os.environ['CELERY_BACKEND_URL']
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 CELERY_ACCEPT_CONTENT = ['application/json']

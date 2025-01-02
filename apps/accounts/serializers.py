@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from apps.accounts import services as account_services
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -19,28 +19,28 @@ class UserDetailsSerializer(serializers.ModelSerializer):
 
 
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
-    @classmethod
-    def get_token(cls, user):
-        token = super(MyTokenObtainPairSerializer, cls).get_token(user)
+#     @classmethod
+#     def get_token(cls, user):
+#         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
 
-        # Add custom claims
-        token['username'] = user.username
-        token['user_type'] = user.user_type
-        return token
+#         # Add custom claims
+#         token['username'] = user.username
+#         token['user_type'] = user.user_type
+#         return token
 
-    def validate(self, attrs: Dict[str, Any]) -> Dict[str, str]:
-        validated_data = super().validate(attrs)
-        validated_data['token'] = dict()
-        validated_data['token'].update({
-            'access': validated_data.pop('access'),
-            'refresh': validated_data.pop('refresh'),
-        })
-        self.user.last_login = timezone.now()
-        self.user.save()
-        validated_data.update(**UserDetailsSerializer(self.user).data)
-        return validated_data
+#     def validate(self, attrs: Dict[str, Any]) -> Dict[str, str]:
+#         validated_data = super().validate(attrs)
+#         validated_data['token'] = dict()
+#         validated_data['token'].update({
+#             'access': validated_data.pop('access'),
+#             'refresh': validated_data.pop('refresh'),
+#         })
+#         self.user.last_login = timezone.now()
+#         self.user.save()
+#         validated_data.update(**UserDetailsSerializer(self.user).data)
+#         return validated_data
 
 
 # class UserAddSerializer(serializers.ModelSerializer):

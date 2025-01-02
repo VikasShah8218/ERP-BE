@@ -196,6 +196,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # React app
     'http://localhost:5173',  # React app
     'http://192.168.1.12:3000',  # React app
+    'http://13.53.197.82:3000',  # React app
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

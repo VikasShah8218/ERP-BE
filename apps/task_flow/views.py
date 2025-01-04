@@ -41,7 +41,6 @@ class TaskAssignViewSet(ModelViewSet):
             return GetTaskAssignSerializer
         return super().get_serializer_class()
     
-# queryset = TaskAssign.objects.filter(~(Q(is_private=True) & ~Q(assigned_users=self.request.user))).order_by("assigned_users.user_id","-updated_on")
     def get_queryset(self):
         user_id = self.request.user.id
         queryset = TaskAssign.objects.raw(f''' SELECT t.*, u.user_id FROM public.tbl_task_assign t LEFT JOIN (SELECT taskassign_id, user_id FROM  tbl_task_assign_assigned_users WHERE user_id = {user_id}) u ON t.id = u.taskassign_id WHERE is_private = false or ( is_private = true and user_id = {user_id} ) ORDER BY  user_id ASC ,updated_on DESC  ''')
@@ -118,12 +117,12 @@ class TaskAssignViewSet(ModelViewSet):
         Mark a task as completed and update the conversation field.
         """
         task = self.get_object()
-        data = request.data
+
+        if not task.assigned_users.filter(id=self.request.user.id).exists():  return Response({'detail':"You are not Assigned in this task"},status=status.HTTP_404_NOT_FOUND)
+        if task.is_complete : return Response({'detail':"Task is Completed"},status=status.HTTP_409_CONFLICT)
         if task.depends_on and not task.depends_on.is_complete:
-            return Response(
-                {"detail": f"{task.depends_on.name} is not completed yet, first complete that task."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": f"{task.depends_on.name} is not completed yet, first complete that task."},status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
         task.is_complete = True
         task.conversation = (task.conversation or "") + f"\n {request.user.username} : {data.get('conversation', '')}"
         task.completed_on = timezone.now()  # Ensure you import `timezone` from Django
@@ -138,8 +137,18 @@ class TaskAssignViewSet(ModelViewSet):
             Return lists of already existing users and non-existing users.
             """
             task = self.get_object()
+            if task.assigned_users.filter(id=self.request.user.id).exists():
+                pass
+            else:
+                return Response({'detail':"You are not Assigned in this task"},status=status.HTTP_404_NOT_FOUND)
+            
+            if task.is_complete :
+                return Response({'detail':"Task is Completed"},status=status.HTTP_409_CONFLICT)
             user_ids_to_add = request.data.get("add_users", [])
             user_ids_to_remove = request.data.get("remove_users", [])
+
+            if task.created_by in user_ids_to_add or request.user.id in user_ids_to_remove:
+                return Response({'detail':"You can't remove Task Creator"},status=status.HTTP_403_FORBIDDEN)
 
             already_assigned_users = []
             non_existing_users = []
@@ -366,7 +375,6 @@ class TaskMediaViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         task_id = request.data.get("task")
-        file = request.FILES.get("file")
         try:
             task = TaskAssign.objects.get(id=task_id)
             if task.depends_on and not task.depends_on.is_complete:
@@ -377,10 +385,12 @@ class TaskMediaViewSet(ModelViewSet):
         except TaskAssign.DoesNotExist:
             return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if task.is_complete:
-            return Response({"detail": "Task is already completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not task.assigned_users.filter(id=self.request.user.id).exists():  return Response({'detail':"You are not Assigned in this task"},status=status.HTTP_404_NOT_FOUND)
+        if task.is_complete : return Response({'detail':"Task is Completed"},status=status.HTTP_409_CONFLICT)
 
         # Determine file type
+        file = request.FILES.get("file")
         file_type = None
         if file:
             mime_type, _ = mimetypes.guess_type(file.name)
@@ -392,7 +402,7 @@ class TaskMediaViewSet(ModelViewSet):
                 elif mime_type.startswith("application/pdf"):
                     file_type = "pdf"
                 else:
-                    file_type = "other"
+                    file_type = False
 
         if not file_type:
             return Response({"detail": "Could not determine file type."}, status=status.HTTP_400_BAD_REQUEST)

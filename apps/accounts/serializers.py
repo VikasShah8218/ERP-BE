@@ -232,7 +232,7 @@ class UserAddSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {
                 'write_only': True,
-                'min_length': 5,
+                'min_length': 4,
             },
             'first_name': {'required': True},
             'last_name': {'required': True}

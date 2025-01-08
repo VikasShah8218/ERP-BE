@@ -17,7 +17,7 @@ class User(AbstractUser):
     user_type = models.CharField(max_length=255, choices=USER_TYPES, default=USER_TYPES['Employee'])
     phone = models.CharField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True)
-    employee_code = models.CharField(max_length=255, unique=True, null=False)
+    # employee_code = models.CharField(max_length=255, unique=True, null=False)
     work_location = models.TextField(null=True)
     department = models.CharField(max_length=255, null=True)
     created_by = models.ForeignKey("self", on_delete=models.CASCADE, null=True, related_name="created_users")

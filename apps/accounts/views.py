@@ -30,7 +30,7 @@ class LoginUser(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            Token.objects.filter(user=user).delete()    
+            # Token.objects.filter(user=user).delete()    
             token, _ = Token.objects.get_or_create(user=user)
             user_data = UserDetailsSerializer(user).data
             response_data = {"token": {"access": token.key,},**user_data}
@@ -125,3 +125,38 @@ class ValidateTokenAPIView(APIView):
             return Response({'valid': True, 'user_id': token.user.id}, status=200)
         except Exception as e:
             return Response({'detail': str(e)}, status=400)
+
+
+
+
+class GetUserById(APIView):
+    permission_classes = [IsAuthenticated] 
+
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            data = {
+                "id": user.id,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        
+
+
+class GetUserById(APIView):
+    permission_classes = [IsAuthenticated]  # Optional: Restrict access to authenticated users
+
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            serializer = UserDetailsSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)

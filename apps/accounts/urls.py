@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import *
-from . import views
 
 urlpatterns = [
     path('test/', Test.as_view()),
@@ -13,4 +12,5 @@ urlpatterns = [
     path('reset-password-by-user/', ResetPasswordByUser.as_view()),
     path('reset-password-by-admin/<int:id>/', ResetPasswordByAdmin.as_view()),
     path('validate-token/' , ValidateTokenAPIView.as_view()),
+    path('user/<int:user_id>/', GetUserById.as_view(), name='get_user_by_id'),
 ]

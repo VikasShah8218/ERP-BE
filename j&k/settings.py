@@ -35,7 +35,8 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    # 'daphne',
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,7 +52,9 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.structure',
     'apps.task_flow',
+    'apps.store',
     'utilities',
+    'ws',
 
 ]
 
@@ -84,8 +87,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'j&k.wsgi.application'
-# ASGI_APPLICATION = 'j&k.routing.application'
+# WSGI_APPLICATION = 'j&k.wsgi.application'
+ASGI_APPLICATION = 'j&k.asgi.application'
 
 
 
@@ -225,3 +228,12 @@ CELERY_TASK_ROUTES = {
 # CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_TASK_SERIALIZER = 'json'
 # CELERY_RESULT_BACKEND = 'django-db'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

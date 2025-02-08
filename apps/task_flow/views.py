@@ -13,6 +13,7 @@ from apps.structure.models import Landmark
 from rest_framework.views import APIView
 from apps.accounts.models import User
 from django.http import JsonResponse
+from ws.utils import send_message
 from django.utils import timezone
 from rest_framework import status
 from django.db.models import Q
@@ -64,7 +65,8 @@ class TaskAssignViewSet(ModelViewSet):
                 client_id.append(user.client_id) 
                 users_name += (str(user.first_name)+"\n")
         if len(client_id)>0: send_message_task.delay(client_id, str(data.get("name"))+"\n"+str(data.get("note"))+"\n"+users_name)
-        task = serializer.save(created_by=request.user)  
+        task = serializer.save(created_by=request.user)
+        send_message({"EVENT":"New Task was Created"})  
         return Response({"detail": "Task created successfully.", "data": TaskAssignSerializer(task).data},status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['patch'], url_path='accept-task')
@@ -109,6 +111,7 @@ class TaskAssignViewSet(ModelViewSet):
         task.conversation = (task.conversation or "") + f"\n {request.user.username} : {new_conversation}"
         task.updated_by = request.user
         task.save()
+        send_message({"CONVERSATION":"New message"})  
         return Response({"detail": "Message Send"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path='complete-task')

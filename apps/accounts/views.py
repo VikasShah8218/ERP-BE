@@ -30,7 +30,7 @@ class LoginUser(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            Token.objects.filter(user=user).delete()    
+            # Token.objects.filter(user=user).delete()    
             token, _ = Token.objects.get_or_create(user=user)
             user_data = UserDetailsSerializer(user).data
             response_data = {"token": {"access": token.key,},**user_data}

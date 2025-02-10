@@ -124,12 +124,16 @@ class UserAddSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        print("\n",validated_data,"\n")
         password = validated_data.pop('password')
+        validated_data.pop('groups')
+        validated_data.pop('user_permissions')
         if self.context.get('created_by'):
             validated_data['created_by'] = self.context['created_by']
             validated_data['updated_by'] = self.context['updated_by']
         user = get_user_model().objects.create(**validated_data)
         user.set_password(password)
+        user.is_active = True
         user.save()
         return user
 

@@ -31,6 +31,21 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+    
+class ProductListViewSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
+    group = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id","name", "category", "group", "quantity",  
+            "model", "location", "status","product_image"
+           ]
+    def get_location(self, obj):
+        return obj.location.name
+    def get_group(self, obj):
+        return obj.group.name
 
 class ProductViewSerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
@@ -42,18 +57,18 @@ class ProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            "name", "description", "category", "group", "price", "quantity",  
+            "id","name", "description", "category", "group", "price", "quantity",  
             "serial_number", "model", "location", "status",  "created_on",
             "updated_on","category_id","location_id","group_id","product_image",
             "bill_image","other_document"
             ]
         
     def get_category(self, obj):
-        return obj.name
+        return obj.category.name
     def get_location(self, obj):
-        return obj.name
+        return obj.location.name
     def get_group(self, obj):
-        return obj.name
+        return obj.group.name
     def get_created_on(self, obj):
         if obj.created_on: return localtime(obj.created_on).strftime("%Y-%m-%d %I:%M %p")
         return None

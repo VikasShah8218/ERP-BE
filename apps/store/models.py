@@ -45,11 +45,13 @@ class Product(models.Model):
 class StoreRequest(models.Model):
     class Meta:
         db_table = 'store_request'
-    employee = models.ForeignKey(User, on_delete=models.CASCADE,related_name="store_emp")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,related_name="store_product")
-    quantity = models.PositiveIntegerField()
-    status = models.CharField(max_length=50, choices=[('1', '1'), ('2', '2'), ('3', '3')], default='0')
-    approval = models.ForeignKey('Approval', on_delete=models.SET_NULL, null=True, blank=True,related_name="store_approval")
+    employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name="store_emp")
+    subject = models.CharField(blank=True,null=True)
+    items = models.JSONField(default=dict, blank=True, null=True) 
+    status = models.CharField(max_length=50, choices=[(1, 1), (2, 2), (3, 3)], default=0)
+    approver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name="store_approval")
+    conversation = models.JSONField(default=dict, blank=True, null=True) 
+    note = models.TextField(null=True,blank=True)
     created_on = models.DateTimeField(auto_now_add=True, null=True)
     updated_on = models.DateTimeField(auto_now=True)
 

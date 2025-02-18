@@ -1,8 +1,12 @@
+from .serializers import CategorySerializer , LocationSerializer ,GroupSerializer,ProductCreateSerializer,StoreRequestRetriveSerializer,StoreRequestListSerializer,ProductViewSerializer,ProductListViewSerializer,StoreRequestSerializer
+from .models import Category, Location ,Group,Product,StoreRequest
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Category, Location ,Group,Product
-from .serializers import CategorySerializer , LocationSerializer ,GroupSerializer,ProductCreateSerializer,ProductViewSerializer,ProductListViewSerializer
+from datetime import datetime
+from django.utils import timezone
+import json
 
 class Test(APIView):
     def get_client_ip(self, request):
@@ -61,3 +65,68 @@ class ProductViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
+
+class StoreRequestViewSet(ModelViewSet):
+    queryset = StoreRequest.objects.all()
+    serializer_class = StoreRequestSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return StoreRequestListSerializer
+        elif self.action == "retrieve":
+            return StoreRequestRetriveSerializer
+        return StoreRequestSerializer
+    
+    def create(self, request, *args, **kwargs):
+        request.data["employee"] = request.user.id
+        items = request.data.get("items", {})
+        if not isinstance(items, dict):
+            return Response({"detail": "Items should be in dictionary format with indexes as keys."}, status=400)
+        
+        for key, value in items.items():
+            if not isinstance(value, dict) or not all(k in value for k in ["name", "model", "design", "color"]):
+                return Response({"detail": f"Invalid structure for item {key}. Each item must contain 'name', 'model', 'design', and 'color'."}, status=400)
+        return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+    
+    @action(detail=True, methods=['patch'], url_path='add-conversation')
+    def add_conversation(self, request, *args, **kwargs):
+        store_request = self.get_object()
+        user = request.user.first_name
+        new_message = request.data.get("conversation", "")
+
+        if not new_message: return Response({"detail": "Message cannot be empty."}, status=400)
+
+        if isinstance(store_request.conversation, str):
+            try: store_request.conversation = json.loads(store_request.conversation)
+            except json.JSONDecodeError: store_request.conversation = {}
+
+        conversation_log = store_request.conversation or {}
+        conversation_count = len(conversation_log) + 1
+        timestamp = timezone.now().strftime("%Y-%m-%d %I:%M %p")
+
+        # Append new conversation
+        conversation_log[conversation_count] = {"user": user, "message": new_message, "timestamp": timestamp}
+        store_request.conversation = conversation_log
+        store_request.save()
+
+        return Response({"detail": "Conversation updated successfully.", "conversation": store_request.conversation}, status=200)
+    
+    @action(detail=True, methods=['patch'], url_path='change-status')
+    def change_status(self, request, *args, **kwargs):
+        store_request = self.get_object()
+        user = request.user.first_name
+        status = request.data.get("status", "")
+
+        if not status:return Response({"detail": "Status cannot be empty."}, status=400)
+
+        store_request.status = status
+        store_request.save()
+
+        return Response({"detail": "Status Updated."}, status=200)

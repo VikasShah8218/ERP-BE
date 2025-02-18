@@ -8,6 +8,7 @@ router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'locations', LocationViewSet, basename='location')
 router.register(r'product-group', ProductGroupViewSet, basename='product-group')
 router.register(r'products', ProductViewSet, basename='product')
+router.register(r'store-requests', StoreRequestViewSet, basename='store-request')
 
 
 urlpatterns = [

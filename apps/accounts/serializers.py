@@ -2,16 +2,20 @@ from typing import Any, Dict
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from apps.accounts import services as account_services
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 
 
 class UserDetailsSerializer(serializers.ModelSerializer):
+    permissions = serializers.SerializerMethodField()
+
     class Meta:
         model = get_user_model()
         exclude = ('password',)
+
+    def get_permissions(self, obj): return list(obj.permissions.values_list("codename", flat=True))
+        # enclude = ("custom_permissions",)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 

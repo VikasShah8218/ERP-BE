@@ -241,3 +241,5 @@ CHANNEL_LAYERS = {
 
 
 CSRF_TRUSTED_ORIGINS = ['https://ess-be.techkingdom.in', 'http://ess-be.techkingdom.in']
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'

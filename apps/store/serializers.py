@@ -106,25 +106,33 @@ class StoreRequestRetriveSerializer(serializers.ModelSerializer):
     def get_created_on(self, obj): return localtime(obj.created_on).strftime("%Y-%m-%d %I:%M %p")  if obj.created_on else None
 
 
+class DailyEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyEntry
+        fields = '__all__'
 
 class DailyEntryListSerializer(serializers.ModelSerializer):
     created_on = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
+    employee = serializers.SerializerMethodField()
     class Meta:
         model = DailyEntry
         fields = ['id','employee','note','location','created_on']
 
     def get_location(self, obj): return obj.location.name
+    def get_employee(self, obj): return obj.employee.first_name
     def get_created_on(self, obj): return localtime(obj.created_on).strftime("%Y-%m-%d %I:%M %p")  if obj.created_on else None
     
 class DailyEntryRetriveSerializer(serializers.ModelSerializer):
     created_on = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
+    employee = serializers.SerializerMethodField()
 
     class Meta:
         model = DailyEntry
         fields = ['id','employee','items','note','location','description','created_on']
 
-    def get_created_on(self, obj): return localtime(obj.created_on).strftime("%Y-%m-%d %I:%M %p")  if obj.created_on else None
     def get_location(self, obj): return obj.location.name
+    def get_employee(self, obj): return obj.employee.first_name
+    def get_created_on(self, obj): return localtime(obj.created_on).strftime("%Y-%m-%d %I:%M %p")  if obj.created_on else None
     

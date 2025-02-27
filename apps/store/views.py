@@ -1,5 +1,5 @@
 from .serializers import (CategorySerializer , LocationSerializer ,GroupSerializer,ProductCreateSerializer,StoreRequestRetriveSerializer,
-StoreRequestListSerializer,ProductViewSerializer,ProductListViewSerializer,StoreRequestSerializer,DailyEntryListSerializer,
+StoreRequestListSerializer,ProductViewSerializer,ProductListViewSerializer,StoreRequestSerializer,DailyEntryListSerializer,DailyEntrySerializer,
 DailyEntryRetriveSerializer)
 from .models import Category, Location ,Group,Product,StoreRequest,DailyEntry
 from rest_framework.viewsets import ModelViewSet
@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import datetime
 import json
 from .permissions import HasCustomPermission
+from rest_framework.exceptions import ValidationError
 
 class Test(APIView):
     def get_client_ip(self, request):
@@ -164,30 +165,35 @@ class StoreRequestViewSet(ModelViewSet):
 
         return Response({"detail": "Status Updated."}, status=200)
     
+
 class StoreDailyEntryViewSet(ModelViewSet):
     queryset = DailyEntry.objects.all().order_by("-id")
-    serializer_class = StoreRequestSerializer
+    serializer_class = DailyEntrySerializer
 
     def get_serializer_class(self):
         if self.action == "list":
-            return StoreRequestListSerializer
+            return DailyEntryListSerializer
         elif self.action == "retrieve":
-            return StoreRequestRetriveSerializer
-        return StoreRequestSerializer
+            return DailyEntryRetriveSerializer
+        return DailyEntrySerializer
         
     def get_queryset(self):
-        queryset = StoreRequest.objects.all().order_by("-id")
-        created_on = self.request.query_params.get("date")
-        status = self.request.query_params.get("status")
-        search_status = int(status) if status is not None and status.isdigit() and int(status) in [0, 1, 2, 3] else None
-        if created_on and search_status != None :
-            try:  queryset = queryset.filter(created_on__date=datetime.strptime(created_on, "%Y-%m-%d").date(),status=search_status)
-            except ValueError: return queryset.none()
-        if created_on :
-            try:  queryset = queryset.filter(created_on__date=datetime.strptime(created_on, "%Y-%m-%d").date())
-            except ValueError: return queryset.none()
+        queryset = super().get_queryset()
+        start_date = self.request.query_params.get("start_date")
+        end_date = self.request.query_params.get("end_date")
+
+        if start_date != None and end_date != None:
+            try:
+                print("Running ")
+                print(start_date,end_date)
+                start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+                return queryset.filter(created_on__date__gte=start_date, created_on__date__lte=end_date)
+            except ValueError:
+                raise ValidationError({"detail": "Invalid date format. Use 'YYYY-MM-DD'."})
         return queryset
-    
+
+
     def create(self, request, *args, **kwargs):
         request.data["employee"] = request.user.id
         items = request.data.get("items", {})
@@ -195,8 +201,8 @@ class StoreDailyEntryViewSet(ModelViewSet):
             return Response({"detail": "Items should be in dictionary format with indexes as keys."}, status=400)
         
         for key, value in items.items():
-            if not isinstance(value, dict) or not all(k in value for k in ["name", "model", "design", "color"]):
-                return Response({"detail": f"Invalid structure for item {key}. Each item must contain 'name', 'model', 'design', and 'color'."}, status=400)
+            if not isinstance(value, dict) or not all(k in value for k in ["name", "model", "design"]):
+                return Response({"detail": f"Invalid structure for item {key}. Each item must contain 'name', 'model', 'design'"}, status=400)
         return super().create(request, *args, **kwargs)
     
     def update(self, request, *args, **kwargs):

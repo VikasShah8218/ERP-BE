@@ -1,4 +1,4 @@
-from apps.accounts.serializers import (UserDetailsSerializer, UserAddSerializer, MyTokenObtainPairSerializer, UpdateUserDetailsByAdminSerializer,PasswordResetSerializer)
+from apps.accounts.serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from apps.accounts.mixins import CustomAuthenticationMixin
 from rest_framework.authtoken.models import Token
@@ -11,6 +11,9 @@ from rest_framework import mixins, viewsets
 from rest_framework.views import APIView
 from apps.accounts.models import User
 from django.utils import timezone
+from .models import Department
+from rest_framework.viewsets import ModelViewSet
+
 from django.conf import settings
 
 
@@ -150,7 +153,7 @@ class GetUserById(APIView):
         
 
 
-class GetUserById(APIView):
+class GetUserById(APIView): 
     permission_classes = [IsAuthenticated]  # Optional: Restrict access to authenticated users
 
     def get(self, request, user_id):
@@ -160,3 +163,8 @@ class GetUserById(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class DepartmentModelAPI(ModelViewSet):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentGETSerializer

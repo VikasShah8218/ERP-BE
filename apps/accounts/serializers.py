@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from .models import Department
 
 
 
@@ -15,7 +16,14 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         exclude = ('password',)
 
     def get_permissions(self, obj): return list(obj.permissions.values_list("codename", flat=True))
-        # enclude = ("custom_permissions",)
+
+
+class DepartmentGETSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department()
+        fields = '__all__'
+
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -130,8 +138,8 @@ class UserAddSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print("\n",validated_data,"\n")
         password = validated_data.pop('password')
-        validated_data.pop('groups')
-        validated_data.pop('user_permissions')
+        # validated_data.pop('groups')
+        # validated_data.pop('user_permissions')
         if self.context.get('created_by'):
             validated_data['created_by'] = self.context['created_by']
             validated_data['updated_by'] = self.context['updated_by']
